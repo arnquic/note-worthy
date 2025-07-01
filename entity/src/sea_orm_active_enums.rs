@@ -5,32 +5,30 @@ use sea_orm::entity::prelude::*;
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "client_status")]
 pub enum ClientStatus {
-    #[sea_orm(string_value = "InTherapy")]
+    #[sea_orm(string_value = "in_therapy")]
     InTherapy,
-    #[sea_orm(string_value = "OnHold")]
+    #[sea_orm(string_value = "on_hold")]
     OnHold,
-    #[sea_orm(string_value = "Completed")]
+    #[sea_orm(string_value = "completed")]
     Completed,
-    #[sea_orm(string_value = "Canceled")]
+    #[sea_orm(string_value = "canceled")]
     Canceled,
 }
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "role")]
 pub enum Role {
-    #[sea_orm(string_value = "Admin")]
+    #[sea_orm(string_value = "admin")]
     Admin,
-    #[sea_orm(string_value = "Contractor")]
+    #[sea_orm(string_value = "contractor")]
     Contractor,
-    #[sea_orm(string_value = "FullTime")]
+    #[sea_orm(string_value = "full_time")]
     FullTime,
-    #[sea_orm(string_value = "TeamLead")]
-    TeamLead,
 }
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "therapist_status")]
 pub enum TherapistStatus {
-    #[sea_orm(string_value = "Active")]
+    #[sea_orm(string_value = "active")]
     Active,
-    #[sea_orm(string_value = "Inactive")]
+    #[sea_orm(string_value = "inactive")]
     Inactive,
 }

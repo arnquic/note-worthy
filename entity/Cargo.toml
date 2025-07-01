@@ -1,8 +1,7 @@
 [package]
-name = "users"
+name = "entity"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-chrono = { workspace = true }
-serde = { workspace = true }
+sea-orm = "1.1.13"

@@ -1,7 +1,7 @@
 use sea_orm_migration::{
-    prelude::*,
+    prelude::{extension::postgres::Type, *},
     schema::*,
-    sea_orm::{EnumIter, Statement},
+    sea_orm::{EnumIter, Iterable, Statement},
 };
 
 #[derive(DeriveIden)]
@@ -16,7 +16,7 @@ pub enum Therapist {
     LicenseNumber,
     Password, // as a salted hash
     Phone,
-    Roles,           // Role array
+    Role,            // Role array
     Specializations, // string array
     TherapistStatus,
     CreatedAt,
@@ -34,7 +34,6 @@ pub enum Role {
     Admin,
     Contractor,
     FullTime,
-    TeamLead,
 }
 
 #[derive(DeriveMigrationName)]
@@ -43,17 +42,23 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Create enum types using raw SQL
+        // Create enum types first
         manager
-            .get_connection()
-            .execute_unprepared(
-                "CREATE TYPE role AS ENUM ('Admin', 'Contractor', 'FullTime', 'TeamLead');",
+            .create_type(
+                Type::create()
+                    .as_enum(Alias::new("role"))
+                    .values(Role::iter())
+                    .to_owned(),
             )
             .await?;
 
         manager
-            .get_connection()
-            .execute_unprepared("CREATE TYPE therapist_status AS ENUM ('Active', 'Inactive');")
+            .create_type(
+                Type::create()
+                    .as_enum(Alias::new("therapist_status"))
+                    .values(TherapistStatus::iter())
+                    .to_owned(),
+            )
             .await?;
 
         manager
@@ -76,12 +81,17 @@ impl MigrationTrait for Migration {
                     .col(string(Therapist::LicenseNumber))
                     .col(string(Therapist::Password))
                     .col(string(Therapist::Phone))
-                    .col(ColumnDef::new(Therapist::Roles).custom(Alias::new("role[]")))
+                    .col(enumeration(
+                        Therapist::Role,
+                        Alias::new("role"),
+                        Role::iter(),
+                    ))
                     .col(ColumnDef::new(Therapist::Specializations).array(ColumnType::Text))
-                    .col(
-                        ColumnDef::new(Therapist::TherapistStatus)
-                            .custom(Alias::new("therapist_status")),
-                    )
+                    .col(enumeration(
+                        Therapist::TherapistStatus,
+                        Alias::new("therapist_status"),
+                        TherapistStatus::iter(),
+                    ))
                     .col(
                         timestamp_with_time_zone(Therapist::CreatedAt)
                             .not_null()
@@ -133,15 +143,12 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(Therapist::Table).to_owned())
             .await?;
 
-        // Drop enum types
         manager
-            .get_connection()
-            .execute_unprepared("DROP TYPE IF EXISTS role;")
+            .drop_type(Type::drop().name(Alias::new("therapist_status")).to_owned())
             .await?;
 
         manager
-            .get_connection()
-            .execute_unprepared("DROP TYPE IF EXISTS therapist_status;")
+            .drop_type(Type::drop().name(Alias::new("role")).to_owned())
             .await?;
 
         // Check if function is still referenced by any triggers

@@ -1,7 +1,7 @@
 use sea_orm_migration::{
-    prelude::*,
+    prelude::{extension::postgres::Type, *},
     schema::*,
-    sea_orm::{EnumIter, Statement},
+    sea_orm::{EnumIter, Iterable, Statement},
 };
 
 #[derive(DeriveIden)]
@@ -37,8 +37,12 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .get_connection()
-            .execute_unprepared("CREATE TYPE client_status AS ENUM ('InTherapy', 'OnHold', 'Completed', 'Canceled');")
+            .create_type(
+                Type::create()
+                    .as_enum(Alias::new("client_status"))
+                    .values(ClientStatus::iter())
+                    .to_owned(),
+            )
             .await?;
 
         manager
@@ -62,7 +66,11 @@ impl MigrationTrait for Migration {
                     .col(string(Client::Phone))
                     .col(string(Client::PreferredName))
                     .col(string(Client::Pronouns))
-                    .col(ColumnDef::new(Client::ClientStatus).custom(Alias::new("client_status")))
+                    .col(enumeration(
+                        Client::ClientStatus,
+                        Alias::new("client_status"),
+                        ClientStatus::iter(),
+                    ))
                     .col(
                         timestamp_with_time_zone(Client::CreatedAt)
                             .not_null()
@@ -85,9 +93,9 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(Client::Table).to_owned())
             .await?;
 
+        // Drop enum types
         manager
-            .get_connection()
-            .execute_unprepared("DROP TYPE IF EXISTS client_status;")
+            .drop_type(Type::drop().name(Alias::new("client_status")).to_owned())
             .await?;
 
         // Check if function is still referenced by any triggers
