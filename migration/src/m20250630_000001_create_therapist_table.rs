@@ -102,12 +102,12 @@ impl MigrationTrait for Migration {
             .execute_unprepared(
                 r#"
                 CREATE OR REPLACE FUNCTION update_updated_at_column()
-                RETURNS TRIGGER AS $
+                RETURNS TRIGGER AS $$
                 BEGIN
                     NEW.updated_at = CURRENT_TIMESTAMP;
                     RETURN NEW;
                 END;
-                $ language 'plpgsql';
+                $$ language 'plpgsql';
                 "#,
             )
             .await?;
@@ -117,8 +117,8 @@ impl MigrationTrait for Migration {
             .get_connection()
             .execute_unprepared(
                 r#"
-                CREATE TRIGGER update_user_table_updated_at
-                    BEFORE UPDATE ON user_table
+                CREATE TRIGGER update_therapist_table_updated_at
+                    BEFORE UPDATE ON therapist
                     FOR EACH ROW
                     EXECUTE FUNCTION update_updated_at_column();
                 "#,
