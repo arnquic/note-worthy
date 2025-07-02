@@ -21,7 +21,9 @@ pub struct Model {
     pub role: Role,
     pub specializations: Option<Vec<String>>,
     pub therapist_status: TherapistStatus,
+    #[serde(skip_deserializing)]
     pub created_at: DateTimeWithTimeZone,
+    #[serde(skip_deserializing)]
     pub updated_at: DateTimeWithTimeZone,
 }
 
