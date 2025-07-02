@@ -28,8 +28,10 @@ pub struct CreateClientRequest {
     pub first_name: String,
     pub last_name: String,
     pub password: String,
-    pub phone: Option<String>,
-    pub preferred_name: String,
+    pub phone: String,
+    pub preferred_name: Option<String>,
+    pub pronouns: String,
+    pub client_status:
 }
 
 #[derive(Debug, Serialize, Deserialize)]
