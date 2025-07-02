@@ -8,7 +8,6 @@ use sea_orm_migration::{
 pub enum Client {
     Table,
     Id,
-    UserId,
     DateOfBirth,
     Email,
     FirstName,
@@ -57,14 +56,13 @@ impl MigrationTrait for Migration {
                             .primary_key()
                             .extra("DEFAULT gen_random_uuid()"),
                     )
-                    .col(string(Client::UserId))
                     .col(date(Client::DateOfBirth))
                     .col(string(Client::Email))
                     .col(string(Client::FirstName))
                     .col(string(Client::LastName))
                     .col(string(Client::Password))
                     .col(string(Client::Phone))
-                    .col(string(Client::PreferredName))
+                    .col(ColumnDef::new(Client::PreferredName).string().null())
                     .col(string(Client::Pronouns))
                     .col(enumeration(
                         Client::ClientStatus,

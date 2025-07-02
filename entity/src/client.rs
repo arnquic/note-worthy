@@ -8,14 +8,13 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
-    pub user_id: String,
     pub date_of_birth: Date,
     pub email: String,
     pub first_name: String,
     pub last_name: String,
     pub password: String,
     pub phone: String,
-    pub preferred_name: String,
+    pub preferred_name: Option<String>,
     pub pronouns: String,
     pub client_status: ClientStatus,
     pub created_at: DateTimeWithTimeZone,

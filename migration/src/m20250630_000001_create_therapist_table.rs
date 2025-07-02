@@ -8,7 +8,6 @@ use sea_orm_migration::{
 pub enum Therapist {
     Table,
     Id,
-    UserId,
     DateOfBirth,
     Email,
     FirstName,
@@ -73,7 +72,6 @@ impl MigrationTrait for Migration {
                             .primary_key()
                             .extra("DEFAULT gen_random_uuid()"),
                     )
-                    .col(string(Therapist::UserId))
                     .col(date(Therapist::DateOfBirth))
                     .col(string(Therapist::Email))
                     .col(string(Therapist::FirstName))
