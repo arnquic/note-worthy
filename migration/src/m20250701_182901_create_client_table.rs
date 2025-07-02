@@ -36,6 +36,11 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
+            .get_connection()
+            .execute_unprepared("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+            .await?;
+
+        manager
             .create_type(
                 Type::create()
                     .as_enum(Alias::new("client_status"))
@@ -80,6 +85,35 @@ impl MigrationTrait for Migration {
                             .extra("DEFAULT CURRENT_TIMESTAMP"),
                     )
                     .to_owned(),
+            )
+            .await?;
+
+        // Create trigger function for auto-updating updated_at
+        manager
+            .get_connection()
+            .execute_unprepared(
+                r#"
+                CREATE OR REPLACE FUNCTION update_updated_at_column()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    NEW.updated_at = CURRENT_TIMESTAMP;
+                    RETURN NEW;
+                END;
+                $$ language 'plpgsql';
+                "#,
+            )
+            .await?;
+
+        // Create trigger for the table
+        manager
+            .get_connection()
+            .execute_unprepared(
+                r#"
+                CREATE TRIGGER update_client_table_updated_at
+                    BEFORE UPDATE ON client
+                    FOR EACH ROW
+                    EXECUTE FUNCTION update_updated_at_column();
+                "#,
             )
             .await?;
 
