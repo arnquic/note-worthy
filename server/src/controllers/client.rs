@@ -1,6 +1,6 @@
 use crate::router::AppState;
 use axum::{Json, extract::State, http::StatusCode};
-use bcrypt::{DEFAULT_COST, hash, verify};
+use bcrypt::{hash, verify};
 use entity::client;
 use sea_orm::{
     ActiveModelTrait,
@@ -14,7 +14,8 @@ pub async fn create(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<client::Model>,
 ) -> Result<(StatusCode, Json<client::Model>), (StatusCode, Json<serde_json::Value>)> {
-    let hashed_password = hash(payload.password, DEFAULT_COST).unwrap();
+    // The default cost for bcrypt is 12, we're using a higher cost for increased security. 15 takes too long without a streamed progress bar.
+    let hashed_password = hash(payload.password, 14).unwrap();
 
     let new_client = client::ActiveModel {
         id: NotSet,

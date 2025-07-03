@@ -21,15 +21,6 @@ pub struct UpdateUserRequest {
     pub specializations: Option<Vec<String>>,
 }
 
-// #[derive(Debug, Deserialize)]
-// pub struct UsersQuery {
-//     pub page: Option<u64>,
-//     pub per_page: Option<u64>,
-//     pub user_type: Option<UserType>,
-//     pub is_active: Option<bool>,
-// }
-
-// Main function example
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv()?;
@@ -51,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     let db = sea_orm::Database::connect(db_opts).await?;
 
     // Create router
-    let router = router::create_router(db.clone());
+    let router = router::create_router(db);
 
     // Start server
     let listener = tokio::net::TcpListener::bind("localhost:3000").await?;
