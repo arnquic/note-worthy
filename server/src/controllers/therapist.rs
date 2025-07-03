@@ -1,7 +1,7 @@
 use crate::{NW_HASH_COST, router::AppState};
 use axum::{Json, extract::State, http::StatusCode};
 use bcrypt::{hash, verify};
-use entity::client;
+use entity::therapist;
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Set},
@@ -12,85 +12,88 @@ use std::sync::Arc;
 
 pub async fn create(
     State(state): State<Arc<AppState>>,
-    Json(payload): Json<client::Model>,
-) -> Result<(StatusCode, Json<client::Model>), (StatusCode, Json<serde_json::Value>)> {
-    let query_result = client::Entity::find()
-        .filter(client::Column::Email.eq(&payload.email))
+    Json(payload): Json<therapist::Model>,
+) -> Result<(StatusCode, Json<therapist::Model>), (StatusCode, Json<serde_json::Value>)> {
+    let query_result = therapist::Entity::find()
+        .filter(therapist::Column::Email.eq(&payload.email))
         .one(&state.db)
         .await;
 
-    if let Ok(client_option) = query_result {
-        if let Some(_client) = client_option {
+    if let Ok(therapist_option) = query_result {
+        if let Some(_therapist) = therapist_option {
             return Err((
                 StatusCode::CONFLICT,
-                Json(serde_json::json!({"msg": "Client already exists"})),
+                Json(serde_json::json!({"msg": "Therapist already exists"})),
             ));
         }
     }
 
     let hashed_password = hash(payload.password, NW_HASH_COST).unwrap();
 
-    let new_client = client::ActiveModel {
+    let new_therapist = therapist::ActiveModel {
         id: NotSet,
-        client_status: Set(payload.client_status),
         date_of_birth: Set(payload.date_of_birth),
         email: Set(payload.email),
         first_name: Set(payload.first_name),
         last_name: Set(payload.last_name),
+        license_number: Set(payload.license_number),
         password: Set(hashed_password),
         phone: Set(payload.phone),
-        preferred_name: Set(payload.preferred_name),
-        pronouns: Set(payload.pronouns),
+        role: Set(payload.role),
+        specializations: Set(payload.specializations),
+        therapist_status: Set(payload.therapist_status),
         created_at: NotSet,
         updated_at: NotSet,
     };
 
-    log::debug!("New client to be inserted: {:?}", new_client);
+    log::debug!("New therapist to be inserted: {:?}", new_therapist);
 
-    let result = new_client.insert(&state.db).await;
+    let result = new_therapist.insert(&state.db).await;
 
     match result {
-        Ok(inserted_client) => Ok((StatusCode::CREATED, Json(inserted_client))),
+        Ok(inserted_therapist) => Ok((StatusCode::CREATED, Json(inserted_therapist))),
         Err(err) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({"msg": "failed to create client", "error": err.to_string()})),
+            Json(
+                serde_json::json!({"msg": "failed to create therapist", "error": err.to_string()}),
+            ),
         )),
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientSigninRequest {
+pub struct TherapistSigninRequest {
     email: String,
     password: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientSigninResponse {
+pub struct TherapistSigninResponse {
     jwt: String,
 }
 
 pub async fn signin(
     State(state): State<Arc<AppState>>,
-    Json(payload): Json<ClientSigninRequest>,
-) -> Result<(StatusCode, Json<ClientSigninResponse>), (StatusCode, Json<serde_json::Value>)> {
-    let client_result = client::Entity::find()
-        .filter(client::Column::Email.eq(payload.email))
+    Json(payload): Json<TherapistSigninRequest>,
+) -> Result<(StatusCode, Json<TherapistSigninResponse>), (StatusCode, Json<serde_json::Value>)> {
+    let query_result = therapist::Entity::find()
+        .filter(therapist::Column::Email.eq(payload.email))
         .all(&state.db)
         .await;
 
-    if let Ok(client_hits) = client_result {
-        match client_hits.len() {
+    if let Ok(therapist_hits) = query_result {
+        match therapist_hits.len() {
             0 => {
                 return Err((
                     StatusCode::NOT_FOUND,
-                    Json(serde_json::json!({"msg": "client not found"})),
+                    Json(serde_json::json!({"msg": "therapist not found"})),
                 ));
             }
             1 => {
-                let client = client_hits.first().unwrap();
-                log::debug!("Single user found: {:?}", client.email);
+                let therapist = therapist_hits.first().unwrap();
+                log::debug!("Single user found: {:?}", therapist.email);
 
-                let verify_result = verify(payload.password, &client.password);
+                let verify_result = verify(payload.password, &therapist.password);
                 log::debug!("Verification result: {:?}", verify_result);
 
                 match verify_result {
@@ -98,7 +101,7 @@ pub async fn signin(
                         log::debug!("Successfully verified");
                         return Ok((
                             StatusCode::OK,
-                            Json(ClientSigninResponse {
+                            Json(TherapistSigninResponse {
                                 jwt: "token here".to_string(),
                             }),
                         ));
@@ -115,7 +118,7 @@ pub async fn signin(
             _ => {
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(serde_json::json!({"msg": "multiple clients found"})),
+                    Json(serde_json::json!({"msg": "multiple therapists found"})),
                 ));
             }
         }

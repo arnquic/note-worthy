@@ -6,6 +6,9 @@ use std::time::Duration;
 mod controllers;
 mod router;
 
+// The default cost for bcrypt is 12, we're using a higher cost for increased security. 15 takes too long without a streamed progress bar.
+const NW_HASH_COST: u32 = 14;
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
 
