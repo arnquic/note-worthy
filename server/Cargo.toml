@@ -21,3 +21,4 @@ log = "0.4.27"
 entity = { path = "../entity" }
 migration = { path = "../migration" }
 dotenvy = "0.15.7"
+jsonwebtoken = "9.3.1"

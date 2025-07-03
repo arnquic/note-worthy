@@ -1,4 +1,4 @@
-use crate::{NW_HASH_COST, router::AppState};
+use crate::{NW_HASH_COST, authentication::jwt, router::AppState};
 use axum::{Json, extract::State, http::StatusCode};
 use bcrypt::{hash, verify};
 use entity::therapist;
@@ -99,12 +99,21 @@ pub async fn signin(
                 match verify_result {
                     Ok(true) => {
                         log::debug!("Successfully verified");
-                        return Ok((
-                            StatusCode::OK,
-                            Json(TherapistSigninResponse {
-                                jwt: "token here".to_string(),
-                            }),
-                        ));
+                        let jwt_result = jwt::generate(
+                            &therapist.id.to_string(),
+                            &therapist.email,
+                            Some(therapist.role.clone()),
+                        );
+
+                        if let Ok(jwt) = jwt_result {
+                            return Ok((StatusCode::OK, Json(TherapistSigninResponse { jwt })));
+                        } else {
+                            log::error!("Failed to generate JWT");
+                            return Err((
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                Json(serde_json::json!({"msg": "failed to generate JWT"})),
+                            ));
+                        }
                     }
                     Ok(false) | Err(_) => {
                         log::debug!("Failed to verify password");

@@ -3,6 +3,7 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+mod authentication;
 mod controllers;
 mod router;
 
