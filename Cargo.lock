@@ -3117,6 +3117,7 @@ dependencies = [
  "dotenvy",
  "entity",
  "log",
+ "migration",
  "sea-orm",
  "serde",
  "serde_json",

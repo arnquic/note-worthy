@@ -10,6 +10,7 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     #[serde(skip_deserializing)]
     pub id: Uuid,
+    pub client_status: ClientStatus,
     pub date_of_birth: Date,
     pub email: String,
     pub first_name: String,
@@ -18,7 +19,6 @@ pub struct Model {
     pub phone: String,
     pub preferred_name: Option<String>,
     pub pronouns: String,
-    pub client_status: ClientStatus,
     #[serde(skip_deserializing)]
     pub created_at: DateTimeWithTimeZone,
     #[serde(skip_deserializing)]

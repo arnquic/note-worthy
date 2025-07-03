@@ -19,4 +19,5 @@ tracing = { workspace = true }
 anyhow = "1.0"
 log = "0.4.27"
 entity = { path = "../entity" }
+migration = { path = "../migration" }
 dotenvy = "0.15.7"

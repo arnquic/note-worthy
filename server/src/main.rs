@@ -1,4 +1,3 @@
-use log::LevelFilter;
 use sea_orm::ConnectOptions;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -47,8 +46,7 @@ async fn main() -> anyhow::Result<()> {
     db_opts
         .max_connections(1)
         .connect_timeout(Duration::from_secs(5))
-        .sqlx_logging(true)
-        .sqlx_logging_level(LevelFilter::Info);
+        .sqlx_logging(false);
 
     let db = sea_orm::Database::connect(db_opts).await?;
 

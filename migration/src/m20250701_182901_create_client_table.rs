@@ -8,6 +8,7 @@ use sea_orm_migration::{
 pub enum Client {
     Table,
     Id,
+    ClientStatus,
     DateOfBirth,
     Email,
     FirstName,
@@ -16,7 +17,6 @@ pub enum Client {
     Phone,
     PreferredName,
     Pronouns,
-    ClientStatus,
     CreatedAt,
     UpdatedAt,
 }
@@ -61,6 +61,11 @@ impl MigrationTrait for Migration {
                             .primary_key()
                             .extra("DEFAULT gen_random_uuid()"),
                     )
+                    .col(enumeration(
+                        Client::ClientStatus,
+                        Alias::new("client_status"),
+                        ClientStatus::iter(),
+                    ))
                     .col(date(Client::DateOfBirth))
                     .col(string(Client::Email))
                     .col(string(Client::FirstName))
@@ -69,11 +74,6 @@ impl MigrationTrait for Migration {
                     .col(string(Client::Phone))
                     .col(ColumnDef::new(Client::PreferredName).string().null())
                     .col(string(Client::Pronouns))
-                    .col(enumeration(
-                        Client::ClientStatus,
-                        Alias::new("client_status"),
-                        ClientStatus::iter(),
-                    ))
                     .col(
                         timestamp_with_time_zone(Client::CreatedAt)
                             .not_null()
