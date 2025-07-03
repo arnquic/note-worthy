@@ -1,13 +1,10 @@
+use crate::router::AppState;
 use axum::{Json, extract::State, http::StatusCode};
+use entity::client::{ActiveModel, Model};
 use sea_orm::{
     ActiveModelTrait,
-    ActiveValue::{self, NotSet, Set, Unchanged},
-    IntoActiveModel,
+    ActiveValue::{NotSet, Set},
 };
-use uuid::Uuid;
-
-use crate::router::AppState;
-use entity::client::{ActiveModel, Model};
 use std::sync::Arc;
 
 pub async fn create(
